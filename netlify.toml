@@ -1,0 +1,22 @@
+[build]
+  command = "npm install"
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/score"
+  to = "/score/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/api/scores"
+  to = "/.netlify/functions/scores"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

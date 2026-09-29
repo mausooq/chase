@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#14332c" />
+  <title>Simmi's Chase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <div id="hud" class="hidden" aria-hidden="true">
+      <div class="hud-top">
+        <div class="hud-left">
+          <div class="hud-chip">
+            <span class="chip-label">Time</span>
+            <span id="timer">0:00</span>
+          </div>
+          <button id="help-btn" type="button" class="help-btn" aria-label="Power-up help">?</button>
+        </div>
+        <div class="hud-title">Simmi's Chase</div>
+        <div class="hud-chip">
+          <span class="chip-label">Distance</span>
+          <span id="distance">—</span>
+        </div>
+      </div>
+      <canvas id="minimap" width="176" height="176" aria-label="Minimap"></canvas>
+      <div id="buffs" class="hud-buffs hidden"></div>
+      <div id="pickup-toast" class="pickup-toast hidden"></div>
+      <!-- <div id="hint" class="desktop-only">WASD or arrows to run</div> -->
+    </div>
+
+    <div id="joystick" class="hidden" aria-hidden="true">
+      <div class="joy-base" id="joy-base">
+        <div class="joy-ring"></div>
+        <div class="joy-knob" id="joy-knob"></div>
+      </div>
+    </div>
+
+    <div id="start-screen" class="overlay">
+      <div class="petal-field" aria-hidden="true"></div>
+      <div class="start-card">
+        <!-- <p class="kicker">A blossom-garden chase</p> -->
+        <h1>Simmi's Chase for love</h1>
+        <p class="tagline">Catch <em>Mausooq</em> before he slips away.</p>
+
+        <div class="cast">
+          <div class="cast-card you">
+            <div class="chibi simmi" aria-hidden="true">
+              <div class="c-shadow"></div>
+              <div class="c-hair-back"></div>
+              <div class="c-body"></div>
+              <div class="c-dress"></div>
+              <div class="c-head">
+                <div class="c-blush l"></div>
+                <div class="c-blush r"></div>
+                <div class="c-eye l"></div>
+                <div class="c-eye r"></div>
+                <div class="c-smile"></div>
+              </div>
+              <div class="c-hair-front"></div>
+              <div class="c-flower"></div>
+            </div>
+            <div class="cast-meta">
+              <strong>Simmi</strong>
+              <span>You · chase him</span>
+            </div>
+          </div>
+
+          <div class="heart-badge">♥</div>
+
+          <div class="cast-card bot">
+            <div class="chibi mausooq" aria-hidden="true">
+              <div class="c-shadow"></div>
+              <div class="c-hair-back t"></div>
+              <div class="c-body t"></div>
+              <div class="c-shirt"></div>
+              <div class="c-head t">
+                <div class="c-brow"></div>
+                <div class="c-eye l"></div>
+                <div class="c-eye r"></div>
+                <div class="c-smile sly"></div>
+              </div>
+              <div class="c-hair-front t"></div>
+            </div>
+            <div class="cast-meta">
+              <strong>Mausooq</strong>
+              <span>Bot</span>
+            </div>
+          </div>
+        </div>
+
+        <ul class="how">
+          <li>Use the joystick to chase Mausooq through the gardens.</li>
+          <li>Cut him off around trees and the pond.</li>
+          <li>Catch him to win.</li>
+        </ul>
+
+        <button id="start-btn" type="button">Start Chase</button>
+        <!-- <p class="fine">Works on phones, tablets, and desktop. No account needed.</p> -->
+      </div>
+    </div>
+
+    <div id="help-screen" class="overlay hidden" aria-hidden="true">
+      <div class="start-card help-card">
+        <p class="kicker">Garden gifts</p>
+        <h2>Power-ups</h2>
+        <ul class="power-list">
+          <li>
+            <span class="power-icon sprint">⚡</span>
+            <div>
+              <strong>Sprint</strong>
+              <p>A short burst of speed so you can close the gap.</p>
+            </div>
+          </li>
+          <li>
+            <span class="power-icon attraction">♥</span>
+            <div>
+              <strong>Attraction</strong>
+              <p>Mausooq slows down for a moment and is easier to catch.</p>
+            </div>
+          </li>
+          <li>
+            <span class="power-icon invincible">👻</span>
+            <div>
+              <strong>Invincible</strong>
+              <p>Cut through the pond and trees at full speed.</p>
+            </div>
+          </li>
+        </ul>
+        <button id="help-close" type="button">Got it</button>
+      </div>
+    </div>
+
+    <div id="hug-scene" class="hug-scene hidden" aria-hidden="true">
+      <div class="hug-veil"></div>
+      <div class="hug-pop">
+        <div class="hug-stage">
+          <div class="chibi simmi hug-her" aria-hidden="true">
+            <div class="c-shadow"></div>
+            <div class="c-hair-back"></div>
+            <div class="c-body"></div>
+            <div class="c-dress"></div>
+            <div class="c-head">
+              <div class="c-blush l"></div>
+              <div class="c-blush r"></div>
+              <div class="c-eye l"></div>
+              <div class="c-eye r"></div>
+              <div class="c-smile"></div>
+            </div>
+            <div class="c-hair-front"></div>
+            <div class="c-flower"></div>
+          </div>
+          <div class="chibi mausooq hug-him" aria-hidden="true">
+            <div class="c-shadow"></div>
+            <div class="c-hair-back t"></div>
+            <div class="c-body t"></div>
+            <div class="c-shirt"></div>
+            <div class="c-head t">
+              <div class="c-brow"></div>
+              <div class="c-blush l"></div>
+              <div class="c-blush r"></div>
+              <div class="c-eye l"></div>
+              <div class="c-eye r"></div>
+              <div class="c-smile sly"></div>
+            </div>
+            <div class="c-hair-front t"></div>
+          </div>
+          <div class="hug-arm left"></div>
+          <div class="hug-arm right"></div>
+          <div class="hug-hands"></div>
+        </div>
+        <span class="hug-heart a">♥</span>
+        <span class="hug-heart b">♥</span>
+        <span class="hug-heart c">✿</span>
+        <p class="hug-caption">Got you</p>
+      </div>
+    </div>
+
+    <div id="win-screen" class="overlay hidden" aria-hidden="true">
+      <div class="petal-field" aria-hidden="true"></div>
+      <div class="start-card win-card">
+        <p class="kicker">Gotcha</p>
+        <h1>Simmi caught Mausooq</h1>
+        <p class="tagline" id="win-copy">A perfect chase through the gardens.</p>
+        <div class="win-stats">
+          <div>
+            <span class="chip-label">Time</span>
+            <strong id="win-time">0:00</strong>
+          </div>
+          <div>
+            <span class="chip-label">Best</span>
+            <strong id="win-best">—</strong>
+          </div>
+        </div>
+        <label class="win-note" for="win-message">
+          Leave a message for Mausooq. He won't be able to see it.
+          <textarea id="win-message" maxlength="280" rows="3" placeholder="Type something anyway…"></textarea>
+        </label>
+        <p id="win-note-status" class="win-note-status hidden"></p>
+        <div class="win-actions">
+          <button id="message-btn" type="button">Submit</button>
+          <button id="again-btn" type="button">Chase again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/scores.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
