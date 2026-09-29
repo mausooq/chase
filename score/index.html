@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#14332c" />
+  <title>Scores · Simmi's Chase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+  <style>
+    html, body {
+      overflow: auto;
+      touch-action: auto;
+      user-select: text;
+      -webkit-user-select: text;
+      height: auto;
+      min-height: 100dvh;
+    }
+
+    .score-page {
+      min-height: 100dvh;
+      padding: calc(24px + var(--safe-top)) 18px calc(28px + var(--safe-bottom));
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(229, 154, 179, 0.22), transparent 45%),
+        radial-gradient(ellipse at 90% 100%, rgba(232, 197, 107, 0.18), transparent 40%),
+        linear-gradient(165deg, #0c211c, #14332c);
+    }
+
+    .score-card {
+      width: min(560px, 100%);
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(246, 239, 226, 0.96), rgba(236, 220, 196, 0.94));
+      color: var(--ink);
+      border-radius: 28px;
+      padding: 28px 22px 22px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(232, 197, 107, 0.45);
+    }
+
+    .score-card h1 {
+      margin-bottom: 6px;
+    }
+
+    .score-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 16px 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .score-toolbar a,
+    .score-toolbar button {
+      width: auto;
+      padding: 10px 16px;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .score-toolbar a {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid rgba(26, 42, 38, 0.18);
+      box-shadow: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(26, 42, 38, 0.08);
+    }
+
+    th {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+    }
+
+    .empty {
+      text-align: center;
+      color: #5c6f68;
+      padding: 28px 8px;
+    }
+
+    #source {
+      margin: 14px 0 0;
+      font-size: 12px;
+      color: #6a7c75;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="score-page">
+    <div class="score-card">
+      <p class="kicker">Simmi's Chase</p>
+      <h1>Scores</h1>
+      <p class="tagline">Every catch is saved as JSON.</p>
+      <div class="score-toolbar">
+        <a href="../">Back to game</a>
+        <button id="download-btn" type="button">Download JSON</button>
+      </div>
+      <div id="list"><p class="empty">Loading scores…</p></div>
+      <p id="source"></p>
+    </div>
+  </div>
+  <script src="../js/scores.js"></script>
+  <script>
+    const listEl = document.getElementById("list");
+    const sourceEl = document.getElementById("source");
+    const downloadBtn = document.getElementById("download-btn");
+    let scores = [];
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[c]));
+    }
+
+    function when(iso) {
+      try {
+        return new Date(iso).toLocaleString();
+      } catch (_) {
+        return iso;
+      }
+    }
+
+    function render(rows, fromServer) {
+      scores = rows;
+      if (!rows.length) {
+        listEl.innerHTML = '<p class="empty">No catches yet. Play a round and come back.</p>';
+        sourceEl.textContent = "";
+        return;
+      }
+      const best = Math.min(...rows.map((r) => r.seconds));
+      listEl.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>#</th><th>Time</th><th>Message</th><th>When</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, i) => `
+              <tr>
+                <td>${i + 1}${row.seconds === best ? " · best" : ""}</td>
+                <td><strong>${row.time}</strong></td>
+                <td>${escapeHtml(row.message || "—")}</td>
+                <td>${when(row.at)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      sourceEl.textContent = fromServer
+        ? "Saved on the site — you can open /score from any device."
+        : "Saved on this device only. Deploy with Netlify functions to see scores from any phone.";
+    }
+
+    downloadBtn.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(scores, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "scores.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    ChaseScores.all().then(({ rows, remote }) => {
+      render(rows, remote);
+    });
+  </script>
+</body>
+</html>
